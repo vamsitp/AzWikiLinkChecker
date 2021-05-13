@@ -64,6 +64,8 @@
                     {
                         url = account.BaseUrl + string.Format(CultureInfo.InvariantCulture, WikiPageUrl, wiki.name, item.path); // $"/{item.id}"
                         var page = await url.WithHeader(AuthHeader, pat).GetJsonAsync<Page>();
+                        page.sanitizedWikiUrl = $"{account.BaseUrl}/_wiki/wikis/{wiki.name}/{page.id}/{page.path.Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault()}";
+                        page.sanitizedGitUrl = $"{account.BaseUrl}/_git/{wiki.repositoryId}?path={page.gitItemPath}";
                         yield return page;
                     }
                 }

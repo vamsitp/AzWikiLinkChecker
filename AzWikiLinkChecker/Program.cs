@@ -2,8 +2,12 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
+    using System.Globalization;
+    using System.IO;
     using System.Threading.Tasks;
+
+    using CsvHelper;
+    using CsvHelper.Configuration;
 
     using Microsoft.Extensions.Configuration;
 
@@ -33,19 +37,34 @@
                 {
                     wiki.pages.Add(page);
                     Console.Write($" {wiki.pages.Count}. ".PadLeft(6));
-                    Console.WriteLine($"{account.BaseUrl}/_wiki/wikis/{wiki.name}/{page.id}/{page.path.Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault()}");
-                    Console.WriteLine($"      gitItemPath: {page.gitItemPath}");
-                    Console.WriteLine($"        remoteUrl: {page.remoteUrl}");
-                    Console.WriteLine($"         subPages: {page.subPages?.Length}");
-                    Console.WriteLine($"          content: {page.content}");
+                    Console.WriteLine(page.sanitizedWikiUrl);
+                    // Console.WriteLine($"      gitItemPath: {page.gitItemPath}");
+                    // Console.WriteLine($"        remoteUrl: {page.remoteUrl}");
+                    // Console.WriteLine($"         subPages: {page.subPages?.Length}");
+                    Console.WriteLine($"      git: {page.sanitizedGitUrl}");
+                    Console.WriteLine($"      content: {page.content}");
                     Console.WriteLine($"      -----\n");
                 }
 
                 Console.WriteLine(" -------------------------\n");
+                var file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), $"AzWikiLinkChecker_{wiki.name}.csv");
+                await Save(wiki.pages, file);
+                Console.WriteLine($"Saved to: {file}");
             }
 
             Console.WriteLine("--------------------------------------------------");
             Console.ReadLine();
+        }
+
+        private static async Task Save<T>(IEnumerable<T> results, string file)
+        {
+            using (var reader = File.CreateText(file))
+            {
+                using (var csvWriter = new CsvWriter(reader, new CsvConfiguration(CultureInfo.InvariantCulture)))
+                {
+                    await csvWriter.WriteRecordsAsync(results);
+                }
+            }
         }
     }
 }

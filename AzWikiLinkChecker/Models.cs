@@ -33,6 +33,8 @@ namespace AzWikiLinkChecker
         public string name { get; set; }
         public string mappedPath { get; set; }
         public string remoteUrl { get; set; }
+        public string type { get; set; }
+        public string repositoryId { get; set; }
         public string url { get; set; }
         public string version { get; set; }
 
@@ -52,12 +54,14 @@ namespace AzWikiLinkChecker
     public class Page
     {
         public int id { get; set; }
+        public string sanitizedWikiUrl { get; set; }
+        public string sanitizedGitUrl { get; set; }
         public string path { get; set; }
         public string remoteUrl { get; set; }
         public string gitItemPath { get; set; }
-        public string content { get; set; }
         public bool isParentPage { get; set; }
         public string url { get; set; }
+        public string content { get; set; }
         public Page[] subPages { get; set; }
     }
 }
