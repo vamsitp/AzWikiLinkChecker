@@ -5,4 +5,4 @@
 
 **USAGE**
 > **`azwlc -o "AzDO Org" -p "AzDO Project" -w "AzDO Wiki" -t "PAT"`**   
-> CSV _output_ is saved to user's _Desktop_ folder with the name `AzWikiLinkChecker_***.csv`
+> CSV _output_ is saved to user's _Desktop_ folder with the name `azwlc_***.csv`

@@ -7,16 +7,11 @@
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Web;
 
     using ColoredConsole;
 
     using CsvHelper;
     using CsvHelper.Configuration;
-
-    using Markdig;
-    using Markdig.Syntax;
-    using Markdig.Syntax.Inlines;
 
     using Microsoft.Extensions.Configuration;
 
@@ -45,64 +40,32 @@
                 Console.Write(" ");
                 await foreach (var page in AzDo.GetPagesAsync(account, wiki))
                 {
-                    Console.Write(".");
                     wiki.pages.Add(page);
-                }
-
-                foreach (var page in wiki.pages)
-                {
+                    Debug.WriteLine($"{page.sanitizedWikiUrl}:\n{page.content}");
                     Console.Write($" {wiki.pages.Count}. ".PadLeft(6));
                     Console.WriteLine(page.sanitizedWikiUrl);
                     // Console.WriteLine($"      gitItemPath: {page.gitItemPath}");
                     // Console.WriteLine($"        remoteUrl: {page.remoteUrl}");
                     // Console.WriteLine($"         subPages: {page.subPages?.Length}");
                     Console.WriteLine($"      git: {page.sanitizedGitUrl}");
-                    Debug.WriteLine($"{page.sanitizedWikiUrl}:\n{page.content}");
-                    foreach (var link in Markdown.Parse(page.content).Descendants<ParagraphBlock>().SelectMany(x => x.Inline.Descendants<LinkInline>()))
+                    foreach (var link in page.links)
                     {
-                        Console.WriteLine($"\n      link: {link.Url}");
-                        var uri = link.Url;
-                        if (new Uri(link.Url, UriKind.RelativeOrAbsolute).IsAbsoluteUri)
-                        {
-                            uri = HttpUtility.UrlDecode(link.Url); // .Replace("-", " ").Replace(".md", string.Empty);
-                        }
-                        else
-                        {
-                            var url = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(page.path), link.Url));
-                            uri = url.Substring(Path.GetPathRoot(url).Length).Replace("\\", "/").Replace("-", " ").Replace(".md", string.Empty);
-                        }
-
-                        if (new Uri(uri, UriKind.RelativeOrAbsolute).IsAbsoluteUri)
-                        {
-                            ColorConsole.WriteLine($"       uri: {uri}".Blue());
-                        }
-                        else
-                        {
-                            if (uri.Contains(".attachment") || uri.Contains(".images"))
-                            {
-                                ColorConsole.WriteLine($"       uri: {uri}".DarkYellow());
-                            }
-                            else
-                            {
-                                if (wiki.pages.Select(p => p.path.TrimStart('/')).Contains(uri))
-                                {
-                                    Console.WriteLine($"       uri: {uri}");
-                                }
-                                else
-                                {
-                                    ColorConsole.WriteLine($"       uri: {uri}".Red());
-                                }
-                            }
-                        }
+                        Console.WriteLine($"\n      link: {link.link.Url}");
+                        ColorConsole.WriteLine($"      root: {link.sanitizedUrl}".Color(link.color));
                     }
 
                     Console.WriteLine($"      -----\n");
                 }
 
                 Console.WriteLine(" -------------------------\n");
-                var file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), $"AzWikiLinkChecker_{wiki.name}.csv");
+                var file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), $"azwlc_{wiki.name}.csv");
                 await Save(wiki.pages, file);
-                Console.WriteLine($"Saved to: {file}");
+
+                var brokenLinksFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), $"azwlc_{wiki.name}_broken_links.csv");
+                var brokenLinks = wiki.pages.SelectMany(page => page.links.Where(l => l.color == ConsoleColor.Red).Select(l => new { page = page.sanitizedWikiUrl, content_link = l.link.Url, sanitized_link = l.sanitizedUrl }));
+                await Save(brokenLinks, brokenLinksFile);
+
+                Console.WriteLine($"Saved to: {file} & {brokenLinksFile}");
             }
 
             Console.WriteLine("--------------------------------------------------");
