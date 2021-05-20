@@ -1,0 +1,54 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- none
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  org: 'AzDO Org'
+  project: 'AzDO Project'
+  wiki: 'AzDO Wiki'
+  pat: 'PAT'
+
+steps:
+
+- script: |
+    dotnet tool install AzWikiLinkChecker -g --no-cache
+    dotnet tool list -g
+  displayName: "Install AzWikiLinkChecker"
+  continueOnError: true
+
+- script: |
+    %USERPROFILE%\.dotnet\tools\azwlc.exe -o "$(org)" -p "$(project)" -w "$(wiki)" -t "$(pat)"
+    echo exit-code: %errorlevel%
+    if %errorlevel% NEQ 0 (
+      echo Failed with %errorlevel% warnings!
+      EXIT /b 1
+    )
+  displayName: "Run azwlc"
+  continueOnError: true
+
+- powershell: |
+    # Get-Content azwlc_$(wiki).csv | ConvertFrom-CSV | ConvertTo-HTML
+    Import-Csv "$(UserProfile)\desktop\azwlc_$(wiki)_broken_links.csv" | Format-Table -AutoSize -GroupBy page
+  displayName: "Print azwlc results"
+  continueOnError: true
+
+- task: CopyFiles@2
+  displayName: Copy azwlc output
+  inputs:
+    contents: '$(UserProfile)\desktop\azwlc_*.*'
+    targetFolder: $(Build.ArtifactStagingDirectory)
+    overWrite: true
+    flattenFolders: true
+
+- task: PublishPipelineArtifact@1
+  displayName: Publish azwlc output
+  inputs:
+    targetPath: $(Build.ArtifactStagingDirectory)
+    artifact: 'azwlc_$(Build.BuildNumber)'
