@@ -3,18 +3,12 @@
     using System;
     using System.Collections.Generic;
     using System.Globalization;
-    using System.IO;
     using System.Linq;
     using System.Net.Http;
     using System.Text;
     using System.Threading.Tasks;
-    using System.Web;
 
     using Flurl.Http;
-
-    using Markdig;
-    using Markdig.Syntax;
-    using Markdig.Syntax.Inlines;
 
     public class AzDo
     {
@@ -72,46 +66,6 @@
                         var page = await url.WithHeader(AuthHeader, pat).GetJsonAsync<Page>();
                         page.sanitizedWikiUrl = $"{account.BaseUrl}/_wiki/wikis/{wiki.name}/{page.id}/{page.path.Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault()}";
                         page.sanitizedGitUrl = $"{account.BaseUrl}/_git/{wiki.repositoryId}?path={page.gitItemPath}";
-                        foreach (var link in Markdown.Parse(page.content).Descendants<ParagraphBlock>().SelectMany(x => x.Inline.Descendants<LinkInline>()))
-                        {
-                            var uri = link.Url;
-                            if (new Uri(link.Url, UriKind.RelativeOrAbsolute).IsAbsoluteUri)
-                            {
-                                uri = HttpUtility.UrlDecode(link.Url); // .Replace("-", " ").Replace(".md", string.Empty);
-                            }
-                            else
-                            {
-                                var u = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(page.path), link.Url));
-                                uri = u.Substring(Path.GetPathRoot(u).Length).Replace("\\", "/").Replace("-", " ").Replace(".md", string.Empty);
-                            }
-
-                            var color = ConsoleColor.White;
-                            if (new Uri(uri, UriKind.RelativeOrAbsolute).IsAbsoluteUri)
-                            {
-                                color = ConsoleColor.Blue;
-                            }
-                            else
-                            {
-                                if (uri.Contains(".attachment") || uri.Contains(".images"))
-                                {
-                                    color = ConsoleColor.DarkYellow;
-                                }
-                                else
-                                {
-                                    if (wiki.pages.Select(p => p.path.TrimStart('/')).Contains(uri))
-                                    {
-                                        color = ConsoleColor.Green;
-                                    }
-                                    else
-                                    {
-                                        color = ConsoleColor.Red;
-                                    }
-                                }
-                            }
-
-                            page.links.Add((link, uri, color));
-                        }
-
                         yield return page;
                     }
                 }

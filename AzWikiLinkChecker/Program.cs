@@ -7,11 +7,16 @@
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Web;
 
     using ColoredConsole;
 
     using CsvHelper;
     using CsvHelper.Configuration;
+
+    using Markdig;
+    using Markdig.Syntax;
+    using Markdig.Syntax.Inlines;
 
     using Microsoft.Extensions.Configuration;
 
@@ -34,6 +39,7 @@
             var account = new Account { Org = config["Org"], Project = config["Project"], Token = config["Token"], Wiki = config["Wiki"] };
             Console.WriteLine($"{account.BaseUrl} (Wikis: {account.Wiki ?? "All"})\n");
             var wikis = await AzDo.GetWikisAsync(account);
+            var exitCode = 0;
             foreach (var wiki in wikis)
             {
                 Console.WriteLine($" {wiki.name} ({wiki.remoteUrl})\n");
@@ -41,6 +47,11 @@
                 await foreach (var page in AzDo.GetPagesAsync(account, wiki))
                 {
                     wiki.pages.Add(page);
+                    Console.Write(".");
+                }
+
+                foreach (var page in wiki.pages)
+                {
                     Debug.WriteLine($"{page.sanitizedWikiUrl}:\n{page.content}");
                     Console.Write($" {wiki.pages.Count}. ".PadLeft(6));
                     Console.WriteLine(page.sanitizedWikiUrl);
@@ -48,10 +59,47 @@
                     // Console.WriteLine($"        remoteUrl: {page.remoteUrl}");
                     // Console.WriteLine($"         subPages: {page.subPages?.Length}");
                     Console.WriteLine($"      git: {page.sanitizedGitUrl}");
-                    foreach (var link in page.links)
+
+                    foreach (var link in Markdown.Parse(page.content).Descendants<ParagraphBlock>().SelectMany(x => x.Inline.Descendants<LinkInline>()))
                     {
-                        Console.WriteLine($"\n      link: {link.link.Url}");
-                        ColorConsole.WriteLine($"      root: {link.sanitizedUrl}".Color(link.color));
+                        var uri = link.Url;
+                        if (new Uri(link.Url, UriKind.RelativeOrAbsolute).IsAbsoluteUri)
+                        {
+                            uri = HttpUtility.UrlDecode(link.Url); // .Replace("-", " ").Replace(".md", string.Empty);
+                        }
+                        else
+                        {
+                            var u = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(page.path), link.Url));
+                            uri = u.Substring(Path.GetPathRoot(u).Length).Replace("\\", "/").Replace("-", " ").Replace(".md", string.Empty);
+                        }
+
+                        var color = ConsoleColor.White;
+                        if (new Uri(uri, UriKind.RelativeOrAbsolute).IsAbsoluteUri)
+                        {
+                            color = ConsoleColor.Blue;
+                        }
+                        else
+                        {
+                            if (uri.Contains(".attachment") || uri.Contains(".images"))
+                            {
+                                color = ConsoleColor.DarkYellow;
+                            }
+                            else
+                            {
+                                if (wiki.pages.Select(p => p.path.TrimStart('/')).Contains(uri))
+                                {
+                                    color = ConsoleColor.Green;
+                                }
+                                else
+                                {
+                                    color = ConsoleColor.Red;
+                                }
+                            }
+                        }
+
+                        page.links.Add((link, uri, color));
+                        Console.WriteLine($"\n      link: {link.Url}");
+                        ColorConsole.WriteLine($"      root: {uri}".Color(color));
                     }
 
                     Console.WriteLine($"      -----\n");
@@ -66,10 +114,11 @@
                 await Save(brokenLinks, brokenLinksFile);
 
                 Console.WriteLine($"Saved to: {file} & {brokenLinksFile}");
+                exitCode = brokenLinks?.Count() ?? 0; // To check %errorlevel% after the app exists in the pipeline
             }
 
             Console.WriteLine("--------------------------------------------------");
-            Console.ReadLine();
+            Environment.ExitCode = exitCode;
         }
 
         private static async Task Save<T>(IEnumerable<T> results, string file)
