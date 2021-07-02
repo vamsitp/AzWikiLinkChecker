@@ -80,7 +80,7 @@
                         }
                         else
                         {
-                            if (uri.Contains(".attachment") || uri.Contains(".images"))
+                            if (uri.StartsWith("#") || uri.Contains(".attachment") || uri.Contains(".images"))
                             {
                                 color = ConsoleColor.DarkYellow;
                             }
@@ -98,7 +98,7 @@
                         }
 
                         page.links.Add((link, uri, color));
-                        Console.WriteLine($"\n      link: {link.Url}");
+                        ColorConsole.WriteLine($"\n      link: ", $"[{(link.FirstOrDefault()?.ToString() ?? string.Empty)}]".Cyan(), $" {link.Url}");
                         ColorConsole.WriteLine($"      root: {uri}".Color(color));
                     }
 
@@ -110,7 +110,7 @@
                 await Save(wiki.pages, file);
 
                 var brokenLinksFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), $"azwlc_{wiki.name}_broken_links.csv");
-                var brokenLinks = wiki.pages.SelectMany(page => page.links.Where(l => l.color == ConsoleColor.Red).Select(l => new { page = page.sanitizedWikiUrl, content_link = l.link.Url, sanitized_link = l.sanitizedUrl }));
+                var brokenLinks = wiki.pages.SelectMany(page => page.links.Where(l => l.color == ConsoleColor.Red).Select(l => new { page = page.sanitizedWikiUrl, text = (l.link?.FirstOrDefault()?.ToString()) ?? string.Empty, content_link = l.link.Url, sanitized_link = l.sanitizedUrl }));
                 await Save(brokenLinks, brokenLinksFile);
 
                 Console.WriteLine($"Saved to: {file} & {brokenLinksFile}");
