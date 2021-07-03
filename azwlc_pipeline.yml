@@ -42,11 +42,12 @@ steps:
 - task: CopyFiles@2
   displayName: Copy azwlc output
   inputs:
-    contents: '$(UserProfile)\desktop\azwlc_*.*'
-    targetFolder: $(Build.ArtifactStagingDirectory)
-    overWrite: true
+    SourceFolder: '$(UserProfile)\desktop'
+    Contents: 'azwlc_*.*'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    OverWrite: true
     flattenFolders: true
-
+    
 - task: PublishPipelineArtifact@1
   displayName: Publish azwlc output
   inputs:
