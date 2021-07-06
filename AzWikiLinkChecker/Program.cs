@@ -80,7 +80,7 @@
                         }
                         else
                         {
-                            if (uri.StartsWith("#") || uri.Contains(".attachment") || uri.Contains(".images"))
+                            if (uri.Contains("/#") || uri.Contains(".attachment") || uri.Contains(".images"))
                             {
                                 color = ConsoleColor.DarkYellow;
                             }
