@@ -24,6 +24,12 @@ steps:
   continueOnError: true
 
 - script: |
+    dotnet tool update AzWikiLinkChecker -g --no-cache
+    dotnet tool list -g
+  displayName: "Update AzWikiLinkChecker"
+  continueOnError: true
+
+- script: |
     %USERPROFILE%\.dotnet\tools\azwlc.exe -o "$(org)" -p "$(project)" -w "$(wiki)" -t "$(pat)"
     echo exit-code: %errorlevel%
     if %errorlevel% NEQ 0 (
@@ -42,10 +48,10 @@ steps:
 - task: CopyFiles@2
   displayName: Copy azwlc output
   inputs:
-    SourceFolder: '$(UserProfile)\desktop'
-    Contents: 'azwlc_*.*'
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
-    OverWrite: true
+    sourceFolder: '$(UserProfile)\desktop'
+    contents: 'azwlc_*.*'
+    targetFolder: $(Build.ArtifactStagingDirectory)
+    overWrite: true
     flattenFolders: true
     
 - task: PublishPipelineArtifact@1
