@@ -80,7 +80,8 @@
                         }
                         else
                         {
-                            if (uri.Contains("/#") || uri.Contains(".attachment") || uri.Contains(".images"))
+                            var paths = uri.Split(new[] { '/', '\\' });
+                            if (paths.Any(x => x.Trim().StartsWith(".")) || paths.Any(x => x.Contains("#"))) // .attachment / .images / #anchor etc.
                             {
                                 color = ConsoleColor.DarkYellow;
                             }

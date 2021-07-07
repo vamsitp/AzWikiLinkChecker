@@ -21,7 +21,7 @@
     <RepositoryUrl>https://github.com/vamsitp/AzWikiLinkChecker</RepositoryUrl>
     <PackageTags>Azure DevOps;AzDO;Wiki;Links;Urls;</PackageTags>
     <Company>Microsoft</Company>
-    <Version>1.0.4</Version>
+    <Version>1.0.5</Version>
     <StartupObject>AzWikiLinkChecker.Program</StartupObject>
     <Deterministic>false</Deterministic>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
