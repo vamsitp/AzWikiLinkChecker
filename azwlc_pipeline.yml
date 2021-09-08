@@ -13,6 +13,7 @@ variables:
   org: 'AzDO Org'
   project: 'AzDO Project'
   wiki: 'AzDO Wiki'
+  version: 'branch_name'
   pat: 'PAT'
 
 steps:
@@ -30,7 +31,7 @@ steps:
   continueOnError: true
 
 - script: |
-    %USERPROFILE%\.dotnet\tools\azwlc.exe -o "$(org)" -p "$(project)" -w "$(wiki)" -t "$(pat)"
+    %USERPROFILE%\.dotnet\tools\azwlc.exe -o "$(org)" -p "$(project)" -w "$(wiki)" -t "$(pat)" #-v "version"
     echo exit-code: %errorlevel%
     if %errorlevel% NEQ 0 (
       echo Failed with %errorlevel% warnings!
