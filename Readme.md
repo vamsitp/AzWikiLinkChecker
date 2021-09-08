@@ -3,10 +3,10 @@
 > _**pre-req**: install [`dotnet 5.0 SDK`](https://dotnet.microsoft.com/download/dotnet/5.0) (if not already installed)_   
 **`dotnet tool install -g --ignore-failed-sources AzWikiLinkChecker`**   
 
-> _PAT: needs to have wiki Read/Write permission in place. It doesn't make changes to the wiki cintent, but some of the requests are POSTs.
+> _PAT_ needs to have wiki Read/Write permission in place. It doesn't make any changes to the Wiki content, but some of the API requests are POSTs and require those permissions.
 
 **USAGE**
-> **`azwlc -o "AzDO Org name" -p "AzDO Project name" -w "AzDO Wiki" -t "PAT"`**   
+> **`azwlc -o "AzDO Org name" -p "AzDO Project name" <opitonal: -w "AzDO Wiki" -v "branch_name"> -t "PAT"`**  
   > All parameters should be plain text (not URL encoded)   
 > CSV _output_ is saved to user's _Desktop_ folder with the name `azwlc_***.csv`   
 > Sample [azure-pipeline](./azwlc_pipeline.yml)

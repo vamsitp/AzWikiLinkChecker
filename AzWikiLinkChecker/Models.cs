@@ -12,12 +12,17 @@ namespace AzWikiLinkChecker
     {
         public string Org { get; set; }
         public string Project { get; set; }
-
         public string Wiki { get; set; }
+        public string Version { get; set; }
         public string Token { get; set; }
 
         [JsonIgnore]
         public string BaseUrl => $"https://dev.azure.com/{this.Org}/{this.Project}";
+
+        public string GetVersionedUrl(string url)
+        {
+            return string.IsNullOrWhiteSpace(this.Version) ? url : url + $"&versionDescriptor.version={this.Version}&versionDescriptor.versionType=branch";            
+        }
     }
 
     // Wikis
@@ -39,10 +44,15 @@ namespace AzWikiLinkChecker
         public string type { get; set; }
         public string repositoryId { get; set; }
         public string url { get; set; }
-        public string version { get; set; }
+        public Version[] versions { get; set; }
 
         [JsonIgnore]
         public List<Page> pages { get; set; } = new List<Page>();
+    }
+    
+    public class Version
+    {
+        public string version { get; set; }
     }
 
     // Pages

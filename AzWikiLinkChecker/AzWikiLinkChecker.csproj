@@ -21,7 +21,7 @@
     <RepositoryUrl>https://github.com/vamsitp/AzWikiLinkChecker</RepositoryUrl>
     <PackageTags>Azure DevOps;AzDO;Wiki;Links;Urls;</PackageTags>
     <Company>Microsoft</Company>
-    <Version>1.0.5</Version>
+    <Version>1.0.6</Version>
     <StartupObject>AzWikiLinkChecker.Program</StartupObject>
     <Deterministic>false</Deterministic>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -34,7 +34,7 @@
     <PackageReference Include="ColoredConsole" Version="1.0.0" />
     <PackageReference Include="CsvHelper" Version="27.1.1" />
     <PackageReference Include="Flurl.Http" Version="3.2.0" />
-    <PackageReference Include="Markdig" Version="0.25.0" />
+    <PackageReference Include="Markdig" Version="0.26.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="5.0.0" />
   </ItemGroup>
 

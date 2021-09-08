@@ -27,8 +27,9 @@
             var switchMappings = new Dictionary<string, string>()
             {
                 { "-o", "Org" },
-                { "-p", "Project" },
+                { "-p", "Project" },                
                 { "-w", "Wiki" },
+                { "-v", "Version" },
                 { "-t", "Token" },
             };
 
@@ -36,8 +37,13 @@
             builder.AddCommandLine(args, switchMappings);
 
             var config = builder.Build();
-            var account = new Account { Org = config["Org"], Project = config["Project"], Token = config["Token"], Wiki = config["Wiki"] };
-            Console.WriteLine($"{account.BaseUrl} (Wikis: {account.Wiki ?? "All"})\n");
+            var account = new Account { Org = config["Org"], Project = config["Project"], Token = config["Token"], Wiki = config["Wiki"], Version = config["Version"] };
+            foreach (var c in config.AsEnumerable().Where(x => x.Key != "Token"))
+            {
+                Console.WriteLine($"{c.Key}: {c.Value}");
+            }
+
+            Console.WriteLine($"\n{account.BaseUrl} (Wikis: {account.Wiki ?? "All"})\n");
             var wikis = await AzDo.GetWikisAsync(account);
             var exitCode = 0;
             foreach (var wiki in wikis)
@@ -111,7 +117,7 @@
                 await Save(wiki.pages, file);
 
                 var brokenLinksFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), $"azwlc_{wiki.name}_broken_links.csv");
-                var brokenLinks = wiki.pages.SelectMany(page => page.links.Where(l => l.color == ConsoleColor.Red).Select(l => new { page = page.sanitizedWikiUrl, text = (l.link?.FirstOrDefault()?.ToString()) ?? string.Empty, content_link = l.link.Url, sanitized_link = l.sanitizedUrl }));
+                var brokenLinks = wiki.pages.SelectMany(page => page.links.Where(l => l.color == ConsoleColor.Red).Select(l => new { version = string.IsNullOrWhiteSpace(account.Version) ? (wiki.versions?.FirstOrDefault()?.version ?? string.Empty) : account.Version, page = page.sanitizedWikiUrl, text = (l.link?.FirstOrDefault()?.ToString()) ?? string.Empty, content_link = l.link.Url, sanitized_link = l.sanitizedUrl }));
                 await Save(brokenLinks, brokenLinksFile);
 
                 Console.WriteLine($"Saved to: {file} & {brokenLinksFile}");

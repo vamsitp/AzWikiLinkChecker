@@ -33,7 +33,7 @@
                 {
                     var url = account.BaseUrl + WikisUrl;
                     var result = await url.WithHeader(AuthHeader, pat).GetJsonAsync<Wikis>();
-                    return result.items.ToList();
+                    return string.IsNullOrWhiteSpace(account.Version) ? result.items.ToList() : result.items.Where(i => i.versions.Any(v => v.version.Equals(account.Version, StringComparison.OrdinalIgnoreCase))).ToList();
                 }
                 else
                 {
@@ -55,14 +55,14 @@
                 using (var content = new StringContent(WikiPagesContentData.Replace("^^continuationToken^^", continuationToken), Encoding.UTF8, ContentType))
                 {
                     // TODO:
-                    var url = account.BaseUrl + string.Format(CultureInfo.InvariantCulture, WikiPagesUrl, wiki.name);
+                    var url = account.BaseUrl + string.Format(CultureInfo.InvariantCulture, account.GetVersionedUrl(WikiPagesUrl), wiki.name);
 
                     var result = await url.WithHeader(AuthHeader, pat).PostAsync(content);
                     var pages = await result.GetJsonAsync<Pages>();
                     continuationToken = result.Headers.SingleOrDefault(x => x.Name.Equals("X-MS-ContinuationToken", StringComparison.OrdinalIgnoreCase)).Value;
                     foreach (var item in pages.items)
                     {
-                        url = account.BaseUrl + string.Format(CultureInfo.InvariantCulture, WikiPageUrl, wiki.name, item.path); // $"/{item.id}"
+                        url = account.BaseUrl + string.Format(CultureInfo.InvariantCulture, account.GetVersionedUrl(WikiPageUrl), wiki.name, item.path); // $"/{item.id}"
                         var page = await url.WithHeader(AuthHeader, pat).GetJsonAsync<Page>();
                         page.sanitizedWikiUrl = $"{account.BaseUrl}/_wiki/wikis/{wiki.name}/{page.id}/{page.path.Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault()}";
                         page.sanitizedGitUrl = $"{account.BaseUrl}/_git/{wiki.repositoryId}?path={page.gitItemPath}";
